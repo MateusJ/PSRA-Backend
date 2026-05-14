@@ -1,9 +1,5 @@
 import { Request, Response } from "express";
-import {
-  getMe,
-  loginUser,
-  registerUser,
-} from "../services/userService";
+import { getMe, loginUser, registerUser } from "../services/userService";
 import { ServiceError } from "../services/serviceError";
 
 export async function createUsuario(req: Request, res: Response) {
