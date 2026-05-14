@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: rfid-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: psra
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: rfid-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  receptor:
+    build: ./receptor
+    container_name: rfid-app
+    depends_on:
+      - postgres
+      - mosquitto
+    env_file:
+      - ./receptor/.env
+    volumes:
+      - ./receptor:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev"
+
+volumes:
+  pgdata:

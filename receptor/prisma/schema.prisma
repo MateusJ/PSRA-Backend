@@ -1,0 +1,108 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- USUÁRIOS (Fazendeiros) ---
+model Usuario {
+  id           String        @id @default(uuid())
+  nome         String
+  email        String        @unique
+  senha        String
+  createdAt    DateTime      @default(now())
+  
+  // Relação: Um usuário tem várias propriedades
+  propriedades Propriedade[]
+}
+
+// --- PROPRIEDADES ---
+model Propriedade {
+  id           String   @id @default(uuid())
+  nome         String
+  id_usuario   String
+  latitude     Float?
+  longitude    Float?
+
+  // Mapeamento da relação com Usuario
+  usuario      Usuario  @relation(fields: [id_usuario], references: [id])
+
+  // Relações inversas (para podermos acessar os dados a partir da propriedade)
+  animais      Animal[]
+  leitores     Leitor[]
+  
+  // Necessário para as movimentações (quem saiu e quem chegou aqui)
+  origens      Movimentacao[] @relation("Origem")
+  destinos     Movimentacao[] @relation("Destino")
+}
+
+// --- LEITORES (O hardware ESP32) ---
+model Leitor {
+  id             String      @id // Aqui você usará o MAC Address do ESP32
+  nome           String      // Ex: "Portão Sul", "Curral de Vacinação"
+  id_propriedade String
+  
+  propriedade    Propriedade @relation(fields: [id_propriedade], references: [id])
+  leituras       Leitura[]
+}
+
+// --- ANIMAIS ---
+model Animal {
+  id             String   @id @default(uuid())
+  tag_rfid       String   @unique // UID lido pelo R200
+  raca           String
+  data_nascimento DateTime
+  id_propriedade String
+
+  propriedade    Propriedade @relation(fields: [id_propriedade], references: [id])
+  
+  leituras       Leitura[]
+  saude          Saude[]
+  movimentacoes  Movimentacao[]
+}
+
+// --- LEITURAS (Logs de passagem) ---
+model Leitura {
+  id         String   @id @default(uuid())
+  rssi       Float?
+  timestamp  DateTime @default(now())
+  id_animal  String
+  id_leitor  String
+
+  animal     Animal   @relation(fields: [id_animal], references: [id])
+  leitor     Leitor   @relation(fields: [id_leitor], references: [id])
+}
+
+// --- SAÚDE ---
+model Saude {
+  id             String    @id @default(uuid())
+  tipo           TipoSaude
+  descricao      String?   @db.Text
+  data_aplicacao DateTime  @default(now())
+  id_animal      String
+
+  animal         Animal    @relation(fields: [id_animal], references: [id])
+}
+
+// --- MOVIMENTAÇÃO (Histórico de trocas de propriedade) ---
+model Movimentacao {
+  id         String   @id @default(uuid())
+  data       DateTime @default(now())
+  id_animal  String
+  id_origem  String
+  id_destino String
+
+  animal     Animal      @relation(fields: [id_animal], references: [id])
+  origem     Propriedade @relation("Origem", fields: [id_origem], references: [id])
+  destino    Propriedade @relation("Destino", fields: [id_destino], references: [id])
+}
+
+enum TipoSaude {
+  VACINA
+  MEDICAMENTO
+  EXAME
+  CIRURGIA
+}
