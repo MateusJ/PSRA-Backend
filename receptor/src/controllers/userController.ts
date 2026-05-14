@@ -3,8 +3,8 @@ import {
   getMe,
   loginUser,
   registerUser,
-  ServiceError,
 } from "../services/userService";
+import { ServiceError } from "../services/serviceError";
 
 export async function createUsuario(req: Request, res: Response) {
   try {
