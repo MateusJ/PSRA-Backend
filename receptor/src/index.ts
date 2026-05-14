@@ -2,7 +2,14 @@ import "dotenv/config";
 import express from "express";
 import { initMqtt } from "./mqtt/handler";
 import { userRouter } from "./routes/userRoutes";
+import { animalRouter } from "./routes/animalRoutes";
+import { leitorRouter } from "./routes/leitorRoutes";
+import { leituraRouter } from "./routes/leituraRoutes";
+import { movimentacaoRouter } from "./routes/movimentacaoRoutes";
+import { propriedadeRouter } from "./routes/propriedadeRoutes";
+import { saudeRouter } from "./routes/saudeRoutes";
 import { prisma } from "./lib/prisma";
+import { authMiddleware } from "./middleware/auth";
 
 const app = express();
 app.use(express.json());
@@ -11,7 +18,13 @@ app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
-app.use("/usuarios", userRouter);
+app.use("/usuario", userRouter);
+app.use("/propriedade", authMiddleware, propriedadeRouter);
+app.use("/leitor", authMiddleware, leitorRouter);
+app.use("/animal", authMiddleware, animalRouter);
+app.use("/leitura", authMiddleware, leituraRouter);
+app.use("/saude", authMiddleware, saudeRouter);
+app.use("/movimentacao", authMiddleware, movimentacaoRouter);
 
 async function testPrisma(): Promise<void> {
   try {
