@@ -1,19 +1,9 @@
 import jwt from "jsonwebtoken";
 import { prisma } from "../lib/prisma";
 import { createUsuarioSchema, loginSchema } from "../schemas/userSchema";
+import { ServiceError } from "./serviceError";
 
 const jwtSecret = process.env.JWT_SECRET || "dev_secret_change_me";
-
-export class ServiceError extends Error {
-  status: number;
-  details?: unknown;
-
-  constructor(message: string, status: number, details?: unknown) {
-    super(message);
-    this.status = status;
-    this.details = details;
-  }
-}
 
 export async function registerUser(payload: unknown) {
   const parsed = createUsuarioSchema.safeParse(payload);
