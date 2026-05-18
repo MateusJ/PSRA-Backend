@@ -22,6 +22,15 @@ export async function registerUser(payload: unknown) {
   return { id: user.id, nome: user.nome, email: user.email };
 }
 
+export async function validateIfExistAndReturn(id: string) {
+  const user = await prisma.usuario.findUnique({ where: { id } });
+  if (!user) {
+    throw new ServiceError("User not found", 404);
+  }
+
+  return user;
+}
+
 export async function loginUser(payload: unknown) {
   const parsed = loginSchema.safeParse(payload);
   if (!parsed.success) {
@@ -44,10 +53,7 @@ export async function getMe(userId?: string) {
     throw new ServiceError("Unauthorized", 401);
   }
 
-  const user = await prisma.usuario.findUnique({ where: { id: userId } });
-  if (!user) {
-    throw new ServiceError("User not found", 404);
-  }
+  const user = await validateIfExistAndReturn(userId);
 
   return { id: user.id, nome: user.nome, email: user.email };
 }

@@ -14,13 +14,17 @@ export async function createMovimentacao(payload: unknown) {
   return prisma.movimentacao.create({ data: parsed.data });
 }
 
-export async function getMovimentacaoById(id: string) {
+export async function validateIfExistAndReturn(id: string) {
   const movimentacao = await prisma.movimentacao.findUnique({ where: { id } });
   if (!movimentacao) {
     throw new ServiceError("Movimentacao not found", 404);
   }
 
   return movimentacao;
+}
+
+export async function getMovimentacaoById(id: string) {
+  return validateIfExistAndReturn(id);
 }
 
 export async function getMovimentacoes() {
@@ -36,10 +40,7 @@ export async function updateMovimentacao(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  const movimentacao = await prisma.movimentacao.findUnique({ where: { id } });
-  if (!movimentacao) {
-    throw new ServiceError("Movimentacao not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.movimentacao.update({
     where: { id },
@@ -48,10 +49,7 @@ export async function updateMovimentacao(id: string, payload: unknown) {
 }
 
 export async function deleteMovimentacao(id: string) {
-  const movimentacao = await prisma.movimentacao.findUnique({ where: { id } });
-  if (!movimentacao) {
-    throw new ServiceError("Movimentacao not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.movimentacao.delete({ where: { id } });
 }

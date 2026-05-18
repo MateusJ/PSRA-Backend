@@ -1,5 +1,8 @@
 import { prisma } from "../lib/prisma";
-import { createAnimalSchema, updateAnimalSchema } from "../schemas/animalSchema";
+import {
+  createAnimalSchema,
+  updateAnimalSchema,
+} from "../schemas/animalSchema";
 import { ServiceError } from "./serviceError";
 
 export async function createAnimal(payload: unknown) {
@@ -11,13 +14,28 @@ export async function createAnimal(payload: unknown) {
   return prisma.animal.create({ data: parsed.data });
 }
 
-export async function getAnimalById(id: string) {
+export async function validateIfExistAndReturn(id: string) {
   const animal = await prisma.animal.findUnique({ where: { id } });
   if (!animal) {
     throw new ServiceError("Animal not found", 404);
   }
 
   return animal;
+}
+
+export async function getAnimalByTagRfid(tagRfid: string) {
+  const animal = await prisma.animal.findUnique({
+    where: { tag_rfid: tagRfid },
+  });
+  if (!animal) {
+    throw new ServiceError("Animal not found", 404);
+  }
+
+  return animal;
+}
+
+export async function getAnimalById(id: string) {
+  return validateIfExistAndReturn(id);
 }
 
 export async function getAnimais() {
@@ -33,10 +51,7 @@ export async function updateAnimal(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  const animal = await prisma.animal.findUnique({ where: { id } });
-  if (!animal) {
-    throw new ServiceError("Animal not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.animal.update({ where: { id }, data: parsed.data });
 }

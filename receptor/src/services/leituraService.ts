@@ -1,5 +1,8 @@
 import { prisma } from "../lib/prisma";
-import { createLeituraSchema, updateLeituraSchema } from "../schemas/leituraSchema";
+import {
+  createLeituraSchema,
+  updateLeituraSchema,
+} from "../schemas/leituraSchema";
 import { ServiceError } from "./serviceError";
 
 export async function createLeitura(payload: unknown) {
@@ -11,13 +14,17 @@ export async function createLeitura(payload: unknown) {
   return prisma.leitura.create({ data: parsed.data });
 }
 
-export async function getLeituraById(id: string) {
+export async function validateIfExistAndReturn(id: string) {
   const leitura = await prisma.leitura.findUnique({ where: { id } });
   if (!leitura) {
     throw new ServiceError("Leitura not found", 404);
   }
 
   return leitura;
+}
+
+export async function getLeituraById(id: string) {
+  return validateIfExistAndReturn(id);
 }
 
 export async function getLeituras() {
@@ -33,19 +40,13 @@ export async function updateLeitura(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  const leitura = await prisma.leitura.findUnique({ where: { id } });
-  if (!leitura) {
-    throw new ServiceError("Leitura not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.leitura.update({ where: { id }, data: parsed.data });
 }
 
 export async function deleteLeitura(id: string) {
-  const leitura = await prisma.leitura.findUnique({ where: { id } });
-  if (!leitura) {
-    throw new ServiceError("Leitura not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.leitura.delete({ where: { id } });
 }

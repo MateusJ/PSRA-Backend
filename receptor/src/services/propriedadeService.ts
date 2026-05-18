@@ -26,6 +26,15 @@ export async function createPropriedade(
   });
 }
 
+export async function validateIfExistAndReturn(id: string) {
+  const propriedade = await prisma.propriedade.findUnique({ where: { id } });
+  if (!propriedade) {
+    throw new ServiceError("Propriedade not found", 404);
+  }
+
+  return propriedade;
+}
+
 export async function getPropriedadeById(
   userId: string | undefined,
   id: string,

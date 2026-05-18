@@ -11,13 +11,17 @@ export async function createSaude(payload: unknown) {
   return prisma.saude.create({ data: parsed.data });
 }
 
-export async function getSaudeById(id: string) {
+export async function validateIfExistAndReturn(id: string) {
   const saude = await prisma.saude.findUnique({ where: { id } });
   if (!saude) {
     throw new ServiceError("Saude not found", 404);
   }
 
   return saude;
+}
+
+export async function getSaudeById(id: string) {
+  return validateIfExistAndReturn(id);
 }
 
 export async function getSaudes() {
@@ -33,19 +37,13 @@ export async function updateSaude(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  const saude = await prisma.saude.findUnique({ where: { id } });
-  if (!saude) {
-    throw new ServiceError("Saude not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.saude.update({ where: { id }, data: parsed.data });
 }
 
 export async function deleteSaude(id: string) {
-  const saude = await prisma.saude.findUnique({ where: { id } });
-  if (!saude) {
-    throw new ServiceError("Saude not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.saude.delete({ where: { id } });
 }

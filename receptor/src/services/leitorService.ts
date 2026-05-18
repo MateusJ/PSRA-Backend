@@ -14,13 +14,17 @@ export async function createLeitor(payload: unknown) {
   return prisma.leitor.create({ data: parsed.data });
 }
 
-export async function getLeitorById(id: string) {
+export async function validateIfExistAndReturn(id: string) {
   const leitor = await prisma.leitor.findUnique({ where: { id } });
   if (!leitor) {
     throw new ServiceError("Leitor not found", 404);
   }
 
   return leitor;
+}
+
+export async function getLeitorById(id: string) {
+  return validateIfExistAndReturn(id);
 }
 
 export async function getLeitores() {
@@ -36,10 +40,7 @@ export async function updateLeitor(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  const leitor = await prisma.leitor.findUnique({ where: { id } });
-  if (!leitor) {
-    throw new ServiceError("Leitor not found", 404);
-  }
+  await validateIfExistAndReturn(id);
 
   return prisma.leitor.update({ where: { id }, data: parsed.data });
 }
