@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { initMqtt } from "./mqtt/handler";
 import { userRouter } from "./routes/userRoutes";
@@ -12,6 +13,11 @@ import { prisma } from "./lib/prisma";
 import { authMiddleware } from "./middleware/auth";
 
 const app = express();
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+  }),
+);
 app.use(express.json());
 
 app.get("/health", (req, res) => {
