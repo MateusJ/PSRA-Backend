@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getPagination } from "../lib/pagination";
 import {
   createLeitor as createLeitorService,
   deleteLeitor as deleteLeitorService,
@@ -25,7 +26,8 @@ export async function createLeitor(req: Request, res: Response) {
 
 export async function getLeitor(req: Request, res: Response) {
   try {
-    const leitor = await getLeitorById(req.params.id);
+    const userId = (req as Request & { userId?: string }).userId;
+    const leitor = await getLeitorById(userId, req.params.id);
     return res.json(leitor);
   } catch (error) {
     if (error instanceof ServiceError) {
@@ -40,8 +42,15 @@ export async function getLeitor(req: Request, res: Response) {
 
 export async function getLeitores(req: Request, res: Response) {
   try {
-    const leitores = await getLeitoresService();
-    return res.json(leitores);
+    const userId = (req as Request & { userId?: string }).userId;
+    const pagination = getPagination(req.query as Record<string, unknown>);
+    const { data, total } = await getLeitoresService(userId, pagination);
+    return res.json({
+      data,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+    });
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

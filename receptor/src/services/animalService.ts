@@ -1,3 +1,4 @@
+import { Pagination } from "../lib/pagination";
 import { prisma } from "../lib/prisma";
 import {
   createAnimalSchema,
@@ -34,12 +35,40 @@ export async function getAnimalByTagRfid(tagRfid: string) {
   return animal;
 }
 
-export async function getAnimalById(id: string) {
-  return validateIfExistAndReturn(id);
+export async function getAnimalById(userId: string | undefined, id: string) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const animal = await prisma.animal.findFirst({
+    where: { id, propriedade: { id_usuario: userId } },
+  });
+  if (!animal) {
+    throw new ServiceError("Animal not found", 404);
+  }
+
+  return animal;
 }
 
-export async function getAnimais() {
-  return prisma.animal.findMany();
+export async function getAnimais(
+  userId: string | undefined,
+  pagination: Pagination,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const where = { propriedade: { id_usuario: userId } };
+  const [total, data] = await prisma.$transaction([
+    prisma.animal.count({ where }),
+    prisma.animal.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+
+  return { data, total };
 }
 
 export async function updateAnimal(id: string, payload: unknown) {

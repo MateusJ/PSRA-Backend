@@ -1,3 +1,4 @@
+import { Pagination } from "../lib/pagination";
 import { prisma } from "../lib/prisma";
 import { createSaudeSchema, updateSaudeSchema } from "../schemas/saudeSchema";
 import { ServiceError } from "./serviceError";
@@ -20,12 +21,40 @@ export async function validateIfExistAndReturn(id: string) {
   return saude;
 }
 
-export async function getSaudeById(id: string) {
-  return validateIfExistAndReturn(id);
+export async function getSaudeById(userId: string | undefined, id: string) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const saude = await prisma.saude.findFirst({
+    where: { id, animal: { propriedade: { id_usuario: userId } } },
+  });
+  if (!saude) {
+    throw new ServiceError("Saude not found", 404);
+  }
+
+  return saude;
 }
 
-export async function getSaudes() {
-  return prisma.saude.findMany();
+export async function getSaudes(
+  userId: string | undefined,
+  pagination: Pagination,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const where = { animal: { propriedade: { id_usuario: userId } } };
+  const [total, data] = await prisma.$transaction([
+    prisma.saude.count({ where }),
+    prisma.saude.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+
+  return { data, total };
 }
 
 export async function updateSaude(id: string, payload: unknown) {

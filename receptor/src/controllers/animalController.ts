@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getPagination } from "../lib/pagination";
 import {
   createAnimal as createAnimalService,
   deleteAnimal as deleteAnimalService,
@@ -25,7 +26,8 @@ export async function createAnimal(req: Request, res: Response) {
 
 export async function getAnimal(req: Request, res: Response) {
   try {
-    const animal = await getAnimalById(req.params.id);
+    const userId = (req as Request & { userId?: string }).userId;
+    const animal = await getAnimalById(userId, req.params.id);
     return res.json(animal);
   } catch (error) {
     if (error instanceof ServiceError) {
@@ -40,8 +42,15 @@ export async function getAnimal(req: Request, res: Response) {
 
 export async function getAnimais(req: Request, res: Response) {
   try {
-    const animais = await getAnimaisService();
-    return res.json(animais);
+    const userId = (req as Request & { userId?: string }).userId;
+    const pagination = getPagination(req.query as Record<string, unknown>);
+    const { data, total } = await getAnimaisService(userId, pagination);
+    return res.json({
+      data,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+    });
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

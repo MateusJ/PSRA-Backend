@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getPagination } from "../lib/pagination";
 import {
   createSaude as createSaudeService,
   deleteSaude as deleteSaudeService,
@@ -25,7 +26,8 @@ export async function createSaude(req: Request, res: Response) {
 
 export async function getSaude(req: Request, res: Response) {
   try {
-    const saude = await getSaudeById(req.params.id);
+    const userId = (req as Request & { userId?: string }).userId;
+    const saude = await getSaudeById(userId, req.params.id);
     return res.json(saude);
   } catch (error) {
     if (error instanceof ServiceError) {
@@ -40,8 +42,15 @@ export async function getSaude(req: Request, res: Response) {
 
 export async function getSaudes(req: Request, res: Response) {
   try {
-    const saudes = await getSaudesService();
-    return res.json(saudes);
+    const userId = (req as Request & { userId?: string }).userId;
+    const pagination = getPagination(req.query as Record<string, unknown>);
+    const { data, total } = await getSaudesService(userId, pagination);
+    return res.json({
+      data,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+    });
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

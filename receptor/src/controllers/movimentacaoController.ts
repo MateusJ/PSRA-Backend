@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getPagination } from "../lib/pagination";
 import {
   createMovimentacao as createMovimentacaoService,
   deleteMovimentacao as deleteMovimentacaoService,
@@ -25,7 +26,8 @@ export async function createMovimentacao(req: Request, res: Response) {
 
 export async function getMovimentacao(req: Request, res: Response) {
   try {
-    const movimentacao = await getMovimentacaoById(req.params.id);
+    const userId = (req as Request & { userId?: string }).userId;
+    const movimentacao = await getMovimentacaoById(userId, req.params.id);
     return res.json(movimentacao);
   } catch (error) {
     if (error instanceof ServiceError) {
@@ -40,8 +42,15 @@ export async function getMovimentacao(req: Request, res: Response) {
 
 export async function getMovimentacoes(req: Request, res: Response) {
   try {
-    const movimentacoes = await getMovimentacoesService();
-    return res.json(movimentacoes);
+    const userId = (req as Request & { userId?: string }).userId;
+    const pagination = getPagination(req.query as Record<string, unknown>);
+    const { data, total } = await getMovimentacoesService(userId, pagination);
+    return res.json({
+      data,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+    });
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

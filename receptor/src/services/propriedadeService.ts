@@ -1,3 +1,4 @@
+import { Pagination } from "../lib/pagination";
 import { prisma } from "../lib/prisma";
 import {
   createPropriedadeSchema,
@@ -53,12 +54,25 @@ export async function getPropriedadeById(
   return propriedade;
 }
 
-export async function getPropriedades(userId: string | undefined) {
+export async function getPropriedades(
+  userId: string | undefined,
+  pagination: Pagination,
+) {
   if (!userId) {
     throw new ServiceError("Unauthorized", 401);
   }
 
-  return prisma.propriedade.findMany({ where: { id_usuario: userId } });
+  const where = { id_usuario: userId };
+  const [total, data] = await prisma.$transaction([
+    prisma.propriedade.count({ where }),
+    prisma.propriedade.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+
+  return { data, total };
 }
 
 export async function updatePropriedade(

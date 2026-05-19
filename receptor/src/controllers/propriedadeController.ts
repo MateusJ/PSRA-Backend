@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { getPagination } from "../lib/pagination";
 import {
   createPropriedade as createPropriedadeService,
   deletePropriedade as deletePropriedadeService,
@@ -43,8 +44,14 @@ export async function getPropriedade(req: Request, res: Response) {
 export async function getPropriedades(req: Request, res: Response) {
   try {
     const userId = (req as Request & { userId?: string }).userId;
-    const propriedades = await getPropriedadesService(userId);
-    return res.json(propriedades);
+    const pagination = getPagination(req.query as Record<string, unknown>);
+    const { data, total } = await getPropriedadesService(userId, pagination);
+    return res.json({
+      data,
+      page: pagination.page,
+      pageSize: pagination.pageSize,
+      total,
+    });
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

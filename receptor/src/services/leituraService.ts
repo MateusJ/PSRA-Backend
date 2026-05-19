@@ -1,3 +1,4 @@
+import { Pagination } from "../lib/pagination";
 import { prisma } from "../lib/prisma";
 import {
   createLeituraSchema,
@@ -23,12 +24,40 @@ export async function validateIfExistAndReturn(id: string) {
   return leitura;
 }
 
-export async function getLeituraById(id: string) {
-  return validateIfExistAndReturn(id);
+export async function getLeituraById(userId: string | undefined, id: string) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const leitura = await prisma.leitura.findFirst({
+    where: { id, animal: { propriedade: { id_usuario: userId } } },
+  });
+  if (!leitura) {
+    throw new ServiceError("Leitura not found", 404);
+  }
+
+  return leitura;
 }
 
-export async function getLeituras() {
-  return prisma.leitura.findMany();
+export async function getLeituras(
+  userId: string | undefined,
+  pagination: Pagination,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const where = { animal: { propriedade: { id_usuario: userId } } };
+  const [total, data] = await prisma.$transaction([
+    prisma.leitura.count({ where }),
+    prisma.leitura.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+
+  return { data, total };
 }
 
 export async function updateLeitura(id: string, payload: unknown) {

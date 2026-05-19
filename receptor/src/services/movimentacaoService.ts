@@ -1,3 +1,4 @@
+import { Pagination } from "../lib/pagination";
 import { prisma } from "../lib/prisma";
 import {
   createMovimentacaoSchema,
@@ -23,12 +24,54 @@ export async function validateIfExistAndReturn(id: string) {
   return movimentacao;
 }
 
-export async function getMovimentacaoById(id: string) {
-  return validateIfExistAndReturn(id);
+export async function getMovimentacaoById(
+  userId: string | undefined,
+  id: string,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const movimentacao = await prisma.movimentacao.findFirst({
+    where: {
+      id,
+      OR: [
+        { origem: { id_usuario: userId } },
+        { destino: { id_usuario: userId } },
+      ],
+    },
+  });
+  if (!movimentacao) {
+    throw new ServiceError("Movimentacao not found", 404);
+  }
+
+  return movimentacao;
 }
 
-export async function getMovimentacoes() {
-  return prisma.movimentacao.findMany();
+export async function getMovimentacoes(
+  userId: string | undefined,
+  pagination: Pagination,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const where = {
+    OR: [
+      { origem: { id_usuario: userId } },
+      { destino: { id_usuario: userId } },
+    ],
+  };
+  const [total, data] = await prisma.$transaction([
+    prisma.movimentacao.count({ where }),
+    prisma.movimentacao.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.take,
+    }),
+  ]);
+
+  return { data, total };
 }
 
 export async function updateMovimentacao(id: string, payload: unknown) {
