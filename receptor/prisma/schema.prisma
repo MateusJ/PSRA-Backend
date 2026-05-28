@@ -26,6 +26,8 @@ model Propriedade {
   id_usuario   String
   latitude     Float?
   longitude    Float?
+  cnpj_cpf_responsavel String
+  registro_estadual    String
 
   // Mapeamento da relação com Usuario
   usuario      Usuario  @relation(fields: [id_usuario], references: [id])
@@ -54,7 +56,12 @@ model Animal {
   id             String   @id @default(uuid())
   tag_rfid       String   @unique // UID lido pelo R200
   raca           String
+  pelagem        String
+  peso_nascimento_kg   Float?
+  altura_nascimento_cm Float?
   data_nascimento DateTime
+  data_insercao_rfid DateTime
+  data_abate      DateTime?
   id_propriedade String
 
   propriedade    Propriedade @relation(fields: [id_propriedade], references: [id])
@@ -82,6 +89,7 @@ model Saude {
   tipo           TipoSaude
   descricao      String?   @db.Text
   data_aplicacao DateTime  @default(now())
+  veterinario_responsavel String
   id_animal      String
 
   animal         Animal    @relation(fields: [id_animal], references: [id])
