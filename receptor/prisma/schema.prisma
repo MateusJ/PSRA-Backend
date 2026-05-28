@@ -102,6 +102,10 @@ model Movimentacao {
   id_animal  String
   id_origem  String
   id_destino String
+  motivo     String?  @db.Text
+  responsavel_nome String?
+  responsavel_cpf  String?
+  pendente_dados   Boolean  @default(false)
 
   animal     Animal      @relation(fields: [id_animal], references: [id])
   origem     Propriedade @relation("Origem", fields: [id_origem], references: [id])

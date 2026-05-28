@@ -7,6 +7,10 @@ const movimentacoes = [
     id_animal: "cccccccc-cccc-cccc-cccc-cccccccccccc",
     id_origem: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     id_destino: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    motivo: "Transferencia entre propriedades",
+    responsavel_nome: "Carlos Mendes",
+    responsavel_cpf: "123.456.789-00",
+    pendente_dados: false,
   },
 ];
 

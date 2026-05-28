@@ -12,7 +12,27 @@ export async function createMovimentacao(payload: unknown) {
     throw new ServiceError("Validation failed", 400, parsed.error.flatten());
   }
 
-  return prisma.movimentacao.create({ data: parsed.data });
+  const { motivo, responsavel_nome, responsavel_cpf, pendente_dados, ...rest } =
+    parsed.data;
+  const hasAllDetails = Boolean(motivo && responsavel_nome && responsavel_cpf);
+  const isPendente = pendente_dados === true || !hasAllDetails;
+
+  if (!hasAllDetails && pendente_dados !== true) {
+    throw new ServiceError(
+      "Movimentacao requires motivo, responsavel_nome e responsavel_cpf",
+      400,
+    );
+  }
+
+  return prisma.movimentacao.create({
+    data: {
+      ...rest,
+      motivo: motivo ?? null,
+      responsavel_nome: responsavel_nome ?? null,
+      responsavel_cpf: responsavel_cpf ?? null,
+      pendente_dados: isPendente,
+    },
+  });
 }
 
 export async function validateIfExistAndReturn(id: string) {
@@ -83,11 +103,35 @@ export async function updateMovimentacao(id: string, payload: unknown) {
     throw new ServiceError("No data to update", 400);
   }
 
-  await validateIfExistAndReturn(id);
+  const shouldRecalcPendente =
+    "motivo" in parsed.data ||
+    "responsavel_nome" in parsed.data ||
+    "responsavel_cpf" in parsed.data;
+
+  if (!shouldRecalcPendente) {
+    await validateIfExistAndReturn(id);
+    return prisma.movimentacao.update({
+      where: { id },
+      data: parsed.data,
+    });
+  }
+
+  const current = await validateIfExistAndReturn(id);
+  const motivoFinal = parsed.data.motivo ?? current.motivo ?? undefined;
+  const responsavelNomeFinal =
+    parsed.data.responsavel_nome ?? current.responsavel_nome ?? undefined;
+  const responsavelCpfFinal =
+    parsed.data.responsavel_cpf ?? current.responsavel_cpf ?? undefined;
+  const hasAllDetails = Boolean(
+    motivoFinal && responsavelNomeFinal && responsavelCpfFinal,
+  );
 
   return prisma.movimentacao.update({
     where: { id },
-    data: parsed.data,
+    data: {
+      ...parsed.data,
+      pendente_dados: !hasAllDetails,
+    },
   });
 }
 

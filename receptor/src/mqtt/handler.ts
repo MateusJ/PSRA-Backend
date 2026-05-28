@@ -74,6 +74,7 @@ async function handleMqttMessage(message: Buffer): Promise<void> {
       id_origem: animal.id_propriedade,
       id_destino: leitor.id_propriedade,
       data: timestamp,
+      pendente_dados: true,
     });
 
     await updateAnimal(animal.id, { id_propriedade: leitor.id_propriedade });
