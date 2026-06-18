@@ -75,6 +75,17 @@ export async function getPropriedades(
   return { data, total };
 }
 
+export async function getPropriedadesTotal(userId: string | undefined) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const total = await prisma.propriedade.count({
+    where: { id_usuario: userId },
+  });
+  return { total };
+}
+
 export async function updatePropriedade(
   userId: string | undefined,
   id: string,

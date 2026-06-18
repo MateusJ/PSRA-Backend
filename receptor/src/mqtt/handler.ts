@@ -48,10 +48,15 @@ async function handleMqttMessage(message: Buffer): Promise<void> {
     return;
   }
 
+  console.log(data);
+
   let leitor;
   let animal;
 
-  const tagNormalizada = tagId.replace(/^0[xX]/, "0x");
+  const tagNormalizada = (() => {
+    const upper = tagId.toUpperCase();
+    return upper.startsWith("0X") ? upper : `0X${upper}`;
+  })();
 
   try {
     [leitor, animal] = await Promise.all([

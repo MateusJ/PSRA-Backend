@@ -3,15 +3,21 @@ import { PrismaClient } from "@prisma/client";
 const usuarios = [
   {
     id: "11111111-1111-1111-1111-111111111111",
-    nome: "Mateus Machado",
-    email: "mateus@example.com",
+    nome: "Usuario Teste Principal",
+    email: "usuario.teste@example.com",
     senha: "senha123",
   },
   {
     id: "22222222-2222-2222-2222-222222222222",
-    nome: "Ana Souza",
-    email: "ana@example.com",
+    nome: "Usuario Generico 1",
+    email: "generico1@example.com",
     senha: "senha456",
+  },
+  {
+    id: "33333333-3333-3333-3333-333333333333",
+    nome: "Usuario Generico 2",
+    email: "generico2@example.com",
+    senha: "senha789",
   },
 ];
 

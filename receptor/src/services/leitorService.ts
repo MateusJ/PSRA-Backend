@@ -60,6 +60,18 @@ export async function getLeitores(
   return { data, total };
 }
 
+export async function getLeitoresTotal(userId: string | undefined) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  const total = await prisma.leitor.count({
+    where: { propriedade: { id_usuario: userId } },
+  });
+
+  return { total };
+}
+
 export async function updateLeitor(id: string, payload: unknown) {
   const parsed = updateLeitorSchema.safeParse(payload);
   if (!parsed.success) {

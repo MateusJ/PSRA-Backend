@@ -4,7 +4,10 @@ import {
   createAnimal as createAnimalService,
   deleteAnimal as deleteAnimalService,
   getAnimalById,
+  getAnimalRastreabilidade as getAnimalRastreabilidadeService,
+  getAnimalRota as getAnimalRotaService,
   getAnimais as getAnimaisService,
+  getAnimaisAtivosTotal as getAnimaisAtivosTotalService,
   updateAnimal as updateAnimalService,
 } from "../services/animalService";
 import { ServiceError } from "../services/serviceError";
@@ -29,6 +32,57 @@ export async function getAnimal(req: Request, res: Response) {
     const userId = (req as Request & { userId?: string }).userId;
     const animal = await getAnimalById(userId, req.params.id);
     return res.json(animal);
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getAnimaisAtivos(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const total = await getAnimaisAtivosTotalService(userId);
+    return res.json({ total });
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getAnimalRastreabilidade(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const rastreio = await getAnimalRastreabilidadeService(
+      userId,
+      req.params.id,
+    );
+    return res.json(rastreio);
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getAnimalRota(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const rota = await getAnimalRotaService(userId, req.params.id);
+    return res.json(rota);
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

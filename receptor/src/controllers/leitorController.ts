@@ -5,6 +5,7 @@ import {
   deleteLeitor as deleteLeitorService,
   getLeitorById,
   getLeitores as getLeitoresService,
+  getLeitoresTotal as getLeitoresTotalService,
   updateLeitor as updateLeitorService,
 } from "../services/leitorService";
 import { ServiceError } from "../services/serviceError";
@@ -51,6 +52,22 @@ export async function getLeitores(req: Request, res: Response) {
       pageSize: pagination.pageSize,
       total,
     });
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getLeitoresTotal(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const resumo = await getLeitoresTotalService(userId);
+    return res.json(resumo);
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

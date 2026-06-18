@@ -94,6 +94,24 @@ export async function getMovimentacoes(
   return { data, total };
 }
 
+export async function getMovimentacoesPendentesTotal(
+  userId: string | undefined,
+) {
+  if (!userId) {
+    throw new ServiceError("Unauthorized", 401);
+  }
+
+  return prisma.movimentacao.count({
+    where: {
+      pendente_dados: true,
+      OR: [
+        { origem: { id_usuario: userId } },
+        { destino: { id_usuario: userId } },
+      ],
+    },
+  });
+}
+
 export async function updateMovimentacao(id: string, payload: unknown) {
   const parsed = updateMovimentacaoSchema.safeParse(payload);
   if (!parsed.success) {

@@ -5,6 +5,7 @@ import {
   deletePropriedade as deletePropriedadeService,
   getPropriedadeById,
   getPropriedades as getPropriedadesService,
+  getPropriedadesTotal as getPropriedadesTotalService,
   updatePropriedade as updatePropriedadeService,
 } from "../services/propriedadeService";
 import { ServiceError } from "../services/serviceError";
@@ -52,6 +53,22 @@ export async function getPropriedades(req: Request, res: Response) {
       pageSize: pagination.pageSize,
       total,
     });
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getPropriedadesTotal(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const total = await getPropriedadesTotalService(userId);
+    return res.json(total);
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({

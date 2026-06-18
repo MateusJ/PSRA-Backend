@@ -4,7 +4,9 @@ import {
   createLeitura as createLeituraService,
   deleteLeitura as deleteLeituraService,
   getLeituraById,
+  getLeituraSerie as getLeituraSerieService,
   getLeituras as getLeiturasService,
+  getLeiturasRecentes as getLeiturasRecentesService,
   updateLeitura as updateLeituraService,
 } from "../services/leituraService";
 import { ServiceError } from "../services/serviceError";
@@ -51,6 +53,45 @@ export async function getLeituras(req: Request, res: Response) {
       pageSize: pagination.pageSize,
       total,
     });
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getLeituraSerie(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const serie = await getLeituraSerieService(
+      userId,
+      typeof req.query.janela === "string" ? req.query.janela : undefined,
+      typeof req.query.intervalo === "string" ? req.query.intervalo : undefined,
+    );
+    return res.json(serie);
+  } catch (error) {
+    if (error instanceof ServiceError) {
+      return res.status(error.status).json({
+        message: error.message,
+        errors: error.details,
+      });
+    }
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export async function getLeiturasRecentes(req: Request, res: Response) {
+  try {
+    const userId = (req as Request & { userId?: string }).userId;
+    const recentes = await getLeiturasRecentesService(
+      userId,
+      typeof req.query.limit === "string" ? req.query.limit : undefined,
+    );
+    return res.json(recentes);
   } catch (error) {
     if (error instanceof ServiceError) {
       return res.status(error.status).json({
